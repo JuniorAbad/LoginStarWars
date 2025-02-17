@@ -1,0 +1,19 @@
+{
+  "name": "starwars-api",
+  "version": "1.0.0",
+  "description": "Star Wars API con SWAPI, JWT, Redis y PostgreSQL",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",        // Librería para encriptar contraseñas
+    "cors": "^2.8.5",            // Middleware para manejar políticas CORS
+    "dotenv": "^16.3.1",         // Carga variables de entorno desde .env
+    "express": "^4.18.2",        // Framework para construir el servidor
+    "jsonwebtoken": "^9.0.0",    // Manejo de autenticación con JWT
+    "node-fetch": "^2.7.0",      // Cliente HTTP para realizar peticiones a SWAPI
+    "pg": "^8.10.0",             // Cliente para conectarse a PostgreSQL
+    "redis": "^4.6.7"            // Cliente para conectarse a Redis
+  }
+}
