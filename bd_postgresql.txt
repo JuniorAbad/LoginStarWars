@@ -1,0 +1,165 @@
+--Relaciones
+
+1 planetas (No depende de ninguna tabla)
+2️ especies (No depende de ninguna tabla)
+3️ peliculas (No depende de ninguna tabla)
+4️ usuarios (No depende de ninguna tabla)
+5️ vehiculos (No depende de ninguna tabla)
+6️ personajes (Depende de planetas, por lo que debe insertarse después)
+7️ historial_consultas (Depende de usuarios, se inserta después de ellos)
+
+-- Crear la base de datos (solo ejecutar si aún no existe)
+CREATE DATABASE login
+    WITH
+    OWNER = postgres
+    ENCODING = 'UTF8'
+    LC_COLLATE = 'es_PE.UTF-8'
+    LC_CTYPE = 'es_PE.UTF-8'
+    LOCALE_PROVIDER = 'libc'
+    TABLESPACE = pg_default
+    CONNECTION LIMIT = -1
+    IS_TEMPLATE = False;
+
+-- Conectar manualmente a la base de datos en psql antes de ejecutar el resto del script
+-- psql -U postgres -d login
+
+-- Crear las tablas en el orden correcto para evitar errores de referencias
+
+CREATE TABLE IF NOT EXISTS public.planetas (
+    planeta_id SERIAL PRIMARY KEY,
+    nombre VARCHAR(100) UNIQUE NOT NULL,
+    clima VARCHAR(100),
+    terreno VARCHAR(100)
+);
+
+CREATE TABLE IF NOT EXISTS public.especies (
+    especie_id SERIAL PRIMARY KEY,
+    nombre VARCHAR(100) UNIQUE NOT NULL,
+    clasificacion VARCHAR(100),
+    designacion VARCHAR(100),
+    altura_promedio NUMERIC(5,2)
+);
+
+CREATE TABLE IF NOT EXISTS public.peliculas (
+    pelicula_id SERIAL PRIMARY KEY,
+    titulo VARCHAR(100) UNIQUE NOT NULL,
+    director VARCHAR(100),
+    fecha_estreno DATE
+);
+
+CREATE TABLE IF NOT EXISTS public.personajes (
+    personaje_id SERIAL PRIMARY KEY,
+    nombre VARCHAR(100) UNIQUE NOT NULL,
+    altura NUMERIC(5,2),
+    peso NUMERIC(5,2),
+    planeta_id INTEGER REFERENCES public.planetas (planeta_id) ON DELETE SET NULL
+);
+
+CREATE TABLE IF NOT EXISTS public.usuarios (
+    usuario_id SERIAL PRIMARY KEY,
+    nombre_usuario VARCHAR(100) UNIQUE NOT NULL,
+    contraseña_hash VARCHAR(255) NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS public.historial_consultas (
+    historial_id SERIAL PRIMARY KEY,
+    usuario_id INTEGER NOT NULL REFERENCES public.usuarios (usuario_id) ON DELETE CASCADE,
+    endpoint VARCHAR(255) NOT NULL,
+    params JSON,
+    fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS public.vehiculos (
+    vehiculo_id SERIAL PRIMARY KEY,
+    nombre VARCHAR(100) UNIQUE NOT NULL,
+    modelo VARCHAR(100),
+    fabricante VARCHAR(100),
+    costo NUMERIC(15,2)
+);
+
+CREATE TABLE Personaje_Pelicula (
+    personaje_id INT REFERENCES Personajes(personaje_id),
+    pelicula_id INT REFERENCES Peliculas(pelicula_id),
+    PRIMARY KEY (personaje_id, pelicula_id)
+);
+
+CREATE TABLE Personaje_Vehiculo (
+    personaje_id INT REFERENCES Personajes(personaje_id),
+    vehiculo_id INT REFERENCES Vehiculos(vehiculo_id),
+    PRIMARY KEY (personaje_id, vehiculo_id)
+);
+
+CREATE TABLE Personaje_Especie (
+    personaje_id INT REFERENCES Personajes(personaje_id),
+    especie_id INT REFERENCES Especies(especie_id),
+    PRIMARY KEY (personaje_id, especie_id)
+);
+
+CREATE TABLE Pelicula_Planeta (
+    pelicula_id INT REFERENCES Peliculas(pelicula_id),
+    planeta_id INT REFERENCES Planetas(planeta_id),
+    PRIMARY KEY (pelicula_id, planeta_id)
+);
+
+-- Inserción de Datos
+
+INSERT INTO public.planetas (nombre, clima, terreno) VALUES
+('Tatooine', 'Árido', 'Desierto'),
+('Coruscant', 'Templado', 'Urbano'),
+('Hoth', 'Congelado', 'Tundra'),
+('Endor', 'Boscoso', 'Bosque'),
+('Naboo', 'Templado', 'Llanuras'),
+('Kamino', 'Lluvioso', 'Océano'),
+('Mustafar', 'Caluroso', 'Volcánico'),
+('Dagobah', 'Húmedo', 'Pantano'),
+('Bespin', 'Templado', 'Gas'),
+('Jakku', 'Árido', 'Desierto');
+
+INSERT INTO public.especies (nombre, clasificacion, designacion, altura_promedio) VALUES
+('Humano', 'Mamífero', 'Inteligente', 1.80),
+('Wookiee', 'Mamífero', 'Inteligente', 2.30),
+('Droide', 'Artificial', 'No orgánico', 1.50),
+('Twi''lek', 'Reptil', 'Inteligente', 1.70),
+('Hutt', 'Reptil', 'Inteligente', 3.00),
+('Ewok', 'Mamífero', 'Inteligente', 1.00),
+('Gungan', 'Anfibio', 'Inteligente', 1.90),
+('Togruta', 'Mamífero', 'Inteligente', 1.75),
+('Mon Calamari', 'Anfibio', 'Inteligente', 1.80),
+('Zabrak', 'Mamífero', 'Inteligente', 1.85);
+
+INSERT INTO public.personajes (nombre, altura, peso, planeta_id) VALUES
+('Luke Skywalker', 1.72, 77, 1),
+('Leia Organa', 1.50, 49, 2),
+('Han Solo', 1.80, 80, 1),
+('Chewbacca', 2.30, 110, 3),
+('Yoda', 0.66, 17, 8),
+('Darth Vader', 2.03, 120, 1),
+('Obi-Wan Kenobi', 1.82, 77, 1),
+('R2-D2', 0.96, 32, 1),
+('C-3PO', 1.71, 75, 1),
+('Padmé Amidala', 1.65, 45, 5);
+
+INSERT INTO public.peliculas (titulo, director, fecha_estreno) VALUES
+('Star Wars: Episodio IV - Una Nueva Esperanza', 'George Lucas', '1977-05-25'),
+('Star Wars: Episodio V - El Imperio Contraataca', 'George Lucas', '1980-05-21'),
+('Star Wars: Episodio VI - El Retorno del Jedi', 'George Lucas', '1983-05-25'),
+('Star Wars: Episodio I - La Amenaza Fantasma', 'George Lucas', '1999-05-19'),
+('Star Wars: Episodio II - El Ataque de los Clones', 'George Lucas', '2002-05-16'),
+('Star Wars: Episodio III - La Venganza de los Sith', 'George Lucas', '2005-05-19'),
+('Star Wars: Episodio VII - El Despertar de la Fuerza', 'J.J. Abrams', '2015-12-18'),
+('Star Wars: Episodio VIII - Los Últimos Jedi', 'Rian Johnson', '2017-12-15'),
+('Star Wars: Episodio IX - El Ascenso de Skywalker', 'J.J. Abrams', '2019-12-20'),
+('Rogue One: Una Historia de Star Wars', 'Gareth Edwards', '2016-12-16');
+
+INSERT INTO Personaje_Pelicula (personaje_id, pelicula_id) VALUES
+(1, 1), (1, 2), (1, 3), (2, 1), (2, 2), (2, 3), (3, 1), (3, 2), (3, 3), (4, 2);
+
+INSERT INTO Personaje_Vehiculo (personaje_id, vehiculo_id) VALUES
+(1, 1), (3, 2), (4, 2), (5, 9), (6, 7), (7, 1), (8, 2), (9, 2), (10, 8);
+
+INSERT INTO Personaje_Especie (personaje_id, especie_id) VALUES
+(1, 1), (2, 1), (3, 1), (4, 2), (5, 3), (6, 1), (7, 1), (8, 3), (9, 3), (10, 1);
+
+INSERT INTO Pelicula_Planeta (pelicula_id, planeta_id) VALUES
+(1, 1), (1, 2), (2, 3), (2, 4), (3, 1), (3, 5), (4, 5), (5, 6), (6, 7), (7, 8);
